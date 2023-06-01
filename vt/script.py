@@ -90,7 +90,7 @@ def upload_to_vt(apikey, report, file_path):
 def main():
     report = ClassificationReport("report.csv")
     # get all files in the malwares directory
-    dir_name = "./malwares/"
+    dir_name = "./expanded_malwares/"
     list_of_files = [os.path.join(dir_name, x) for x in os.listdir(dir_name)]
     list_of_files = filter(lambda x: os.path.isfile(x) and x.endswith(".elf"), list_of_files)
     
