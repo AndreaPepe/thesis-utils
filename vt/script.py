@@ -3,6 +3,7 @@ import os
 import vt
 import time
 import datetime
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -112,5 +113,25 @@ def main():
     report.to_csv()
 
 
+def single_file_report():
+    file = "../malwares/some-sample/arc5l"
+    file_name = os.path.basename(file)
+    with vt.Client(API_KEY, 1) as client:
+        with open(file, "rb") as f:
+            # compute the sha256 hash of the file
+            content = f.read()
+            file_hash = hashlib.sha256(content).hexdigest()
+
+        try:
+            # get last analysis, if any
+            res = client.get_json(f"/files/{file_hash}")
+            print(json.dumps(res, indent=2))
+        except vt.error.APIError:
+            print(f"\tNever scanned before, uploading {file_name} to VirusTotal...")
+            with open(file, "rb") as f:
+                analysis = client.scan_file(file=f, wait_for_completion=True)
+                print(analysis)
+
 if __name__=="__main__":
     main()
+    #single_file_report()
