@@ -114,7 +114,7 @@ def main():
 
 
 def single_file_report():
-    file = "../malwares/some-sample/arc5l"
+    file = "../../morphVM/test/expand/test_executable"
     file_name = os.path.basename(file)
     with vt.Client(API_KEY, 1) as client:
         with open(file, "rb") as f:
@@ -131,7 +131,10 @@ def single_file_report():
             with open(file, "rb") as f:
                 analysis = client.scan_file(file=f, wait_for_completion=True)
                 print(analysis)
+                time.sleep(15)
+                res = client.get_json(f"/analyses/{analysis.id}")
+                print(json.dumps(res, indent=2))
 
 if __name__=="__main__":
-    main()
-    #single_file_report()
+    #main()
+    single_file_report()
