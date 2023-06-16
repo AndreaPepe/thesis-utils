@@ -19,8 +19,10 @@ last_call = datetime.datetime.now()
         - pending_analysis: a dictionary that maps a file name to its analysis id, for those files which were never scanned before on VT
 '''
 class ClassificationReport:
-    def __init__(self, csv_name:str) -> None:
+    def __init__(self, csv_name:str, av_csv:str) -> None:
         self.csv_name = csv_name
+        self.av_csv = av_csv
+        self.av_results = {}
         self.results = {}
         self.pending_analysis = {}
         
@@ -37,11 +39,45 @@ class ClassificationReport:
     def to_csv(self):
         with open(self.csv_name, "w") as f:
             # write the csv header
-            f.write("name,harmless,malicious,suspicious,timeout,type-unsupported,undetected\n")
-            for file_name, res in self.results.items():
+            f.write("name,harmless,malicious,suspicious,failure,timeout,type-unsupported,undetected,detection rate\n")
+            for file_name, attributes in self.results.items():
+
+                try:
+                    res = attributes["last_analysis_stats"]
+                except KeyError:
+                    res = attributes["stats"]
+
                 # write files' results
-                f.write(f"{file_name},{res['harmless']},{res['malicious']},{res['suspicious']},{res['timeout']},{res['type-unsupported']},{res['undetected']}\n")
+                # type-unsupported is not taken into account in the detection rate
+                sum = res["harmless"] + res["malicious"] + res["suspicious"] + res["failure"] + res["timeout"] + res["undetected"]
+                detection_rate = round(((res["malicious"]) / sum), 2) if sum != 0 else 0
+                f.write(f"{file_name},{res['harmless']},{res['malicious']},{res['suspicious']},{res['failure']},{res['timeout']},{res['type-unsupported']},{res['undetected']},{detection_rate}\n")
     
+                # adjust the anti-virus behaviours
+                try:
+                    av = attributes["last_analysis_results"]
+                except KeyError:
+                    av = attributes["results"]
+
+                for av_name, av_res in av.items():
+                    if av_name not in self.av_results:
+                        self.av_results[av_name] = {"harmless":0, "malicious":0, "suspicious":0, "failure":0, "timeout":0, "type-unsupported":0, "undetected":0}
+                    try:
+                        self.av_results[av_name][av_res["category"]] += 1
+                    except KeyError:
+                        self.av_results[av_name]["timeout"] += 1
+        
+        # compute miss-detection rate of AVs
+        for av_name, av_res in self.av_results.items():
+            # type-unsupported is not taken into account in the detection rate
+            sum = res["harmless"] + res["malicious"] + res["suspicious"] + res["failure"] + res["timeout"] + res["undetected"]
+            detection_rate = round(((av_res["malicious"]) / sum), 2) if sum != 0 else 0
+            self.av_results[av_name]["detection rate"] = detection_rate
+
+        with open(self.av_csv, "w") as f:
+            f.write("name,harmless,malicious,suspicious,failure,timeout,type-unsupported,undetected,detection rate\n")
+            for av_name, av_res in self.av_results.items():
+                f.write(f"{av_name},{av_res['harmless']},{av_res['malicious']},{av_res['suspicious']},{av_res['failure']},{av_res['timeout']},{av_res['type-unsupported']},{av_res['undetected']},{av_res['detection rate']}\n")
 
 
 '''
@@ -51,9 +87,9 @@ class ClassificationReport:
 '''
 def get_analysis_result(apikey:str, report: ClassificationReport, file_name:str, id:str):
     with vt.Client(apikey, 1) as client:
-        res = client.get_object(f"/analyses/{id}")
-        if(res.status == "completed"):
-            report.add_result(file_name, res.stats)
+        res = client.get_json(f"/analyses/{id}")
+        if(res['data']['attributes']['status'] == "completed"):
+            report.add_result(file_name, res["data"]["attributes"])
             report.remove_analysis(file_name)
             return True
         else:
@@ -63,7 +99,7 @@ def get_analysis_result(apikey:str, report: ClassificationReport, file_name:str,
     This function uploads a file to VirusTotal and adds the analysis to the report
     If the file was never scanned before, it adds the analysis ID to the pending_analysis dictionary.
 '''
-def upload_to_vt(apikey, report, file_path):
+def upload_to_vt(apikey:str, report:ClassificationReport, file_path:str):
     file_name = os.path.basename(file_path)
     with vt.Client(apikey, 1) as client:
         with open(file_path, "rb") as f:
@@ -73,8 +109,8 @@ def upload_to_vt(apikey, report, file_path):
 
         try:
             # get last analysis, if any
-            res = client.get_object(f"/files/{file_hash}")
-            report.add_result(file_name, res.last_analysis_stats)
+            res = client.get_json(f"/files/{file_hash}")
+            report.add_result(file_name, res["data"]["attributes"])
         except vt.error.APIError:
             print(f"\tNever scanned before, uploading {file_name} to VirusTotal...")
             global last_call
@@ -89,12 +125,14 @@ def upload_to_vt(apikey, report, file_path):
                 report.add_analysis(file_name, analysis.id)
 
 def main():
-    report = ClassificationReport("report.csv")
+    report = ClassificationReport("report.csv", "av_report.csv")
     # get all files in the malwares directory
-    dir_name = "./expanded_malwares/"
+    # TODO: configure the directory name
+    dir_name = "./malwares_3/"
     list_of_files = [os.path.join(dir_name, x) for x in os.listdir(dir_name)]
-    list_of_files = filter(lambda x: os.path.isfile(x) and x.endswith(".elf"), list_of_files)
-    
+    list_of_files = filter(lambda x: os.path.isfile(x), list_of_files)
+    #list_of_files = filter(lambda x: not x.startswith('.'), list_of_files)
+    list_of_files = sorted(list_of_files)
     # upload files to VirusTotal for scanning
     for f in list_of_files:
         print(f"[+] Processing {f}")
@@ -136,5 +174,5 @@ def single_file_report():
                 print(json.dumps(res, indent=2))
 
 if __name__=="__main__":
-    #main()
-    single_file_report()
+    main()
+    #single_file_report()

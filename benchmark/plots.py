@@ -42,5 +42,5 @@ for i, mean in enumerate(means):
 plt.ylim(min[0] - 0.5, max[3] + 0.5)
 
 #plt.savefig("pagerank.png", dpi=300)
-plt.savefig("moon-calc.png", dpi=600)
+plt.savefig("moon-calc.png", dpi=300)
 plt.show()
