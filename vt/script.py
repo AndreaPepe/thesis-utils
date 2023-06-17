@@ -49,8 +49,8 @@ class ClassificationReport:
 
                 # write files' results
                 # type-unsupported is not taken into account in the detection rate
-                sum = res["harmless"] + res["malicious"] + res["suspicious"] + res["failure"] + res["timeout"] + res["undetected"]
-                detection_rate = round(((res["malicious"]) / sum), 2) if sum != 0 else 0
+                sum = res["harmless"] + res["malicious"] + res["suspicious"] + res["failure"] + res["timeout"] + res["undetected"] + res["type-unsupported"]
+                detection_rate = round(((res["malicious"]) / sum), 2) if sum != 0 else 0.0
                 f.write(f"{file_name},{res['harmless']},{res['malicious']},{res['suspicious']},{res['failure']},{res['timeout']},{res['type-unsupported']},{res['undetected']},{detection_rate}\n")
     
                 # adjust the anti-virus behaviours
@@ -70,8 +70,8 @@ class ClassificationReport:
         # compute miss-detection rate of AVs
         for av_name, av_res in self.av_results.items():
             # type-unsupported is not taken into account in the detection rate
-            sum = res["harmless"] + res["malicious"] + res["suspicious"] + res["failure"] + res["timeout"] + res["undetected"]
-            detection_rate = round(((av_res["malicious"]) / sum), 2) if sum != 0 else 0
+            sum = av_res["harmless"] + av_res["malicious"] + av_res["suspicious"] + av_res["failure"] + av_res["timeout"] + av_res["undetected"] + av_res["type-unsupported"]
+            detection_rate = round(((av_res["malicious"]) / sum), 2) if sum != 0 else 0.0
             self.av_results[av_name]["detection rate"] = detection_rate
 
         with open(self.av_csv, "w") as f:
@@ -128,7 +128,7 @@ def main():
     report = ClassificationReport("report.csv", "av_report.csv")
     # get all files in the malwares directory
     # TODO: configure the directory name
-    dir_name = "./malwares_3/"
+    dir_name = "./malwares_2/"
     list_of_files = [os.path.join(dir_name, x) for x in os.listdir(dir_name)]
     list_of_files = filter(lambda x: os.path.isfile(x), list_of_files)
     #list_of_files = filter(lambda x: not x.startswith('.'), list_of_files)
