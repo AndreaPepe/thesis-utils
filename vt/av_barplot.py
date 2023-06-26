@@ -2,6 +2,11 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 
+plt.style.use('ggplot')
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.serif'] = 'Ubuntu'
+plt.rcParams['font.monospace'] = 'Ubuntu Mono'
+
 df_orig = pd.read_csv('av_global.csv')
 
 df = df_orig
