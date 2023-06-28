@@ -2,8 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-#df = pd.read_csv("pagerank_global.csv", sep=",")
-df = pd.read_csv("mooncalc_global.csv", sep=",")
+plt.style.use('ggplot')
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.serif'] = 'Ubuntu'
+plt.rcParams['font.monospace'] = 'Ubuntu Mono'
+palette = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+df = pd.read_csv("pagerank_global.csv", sep=",")
+#df = pd.read_csv("mooncalc_global.csv", sep=",")
 
 columns = ["Elapsed_0", "Elapsed_1", "Elapsed_2", "Elapsed_3"]
 steps = ["Passo 0" ,"Passo 1", "Passo 2", "Passo 3"]
@@ -24,12 +30,12 @@ for col_name in columns:
 
 # plot the data
 plt.figure(figsize=(10, 6))
-plt.plot(steps, means, color="black", marker="o", markersize=5, label="tempo di esecuzione medio (s)")
-plt.errorbar(steps, means, color="red", yerr=stddev, fmt="o", capsize=4, label="deviazione standard")
+plt.plot(steps, means, color="k", marker="o", markersize=5, label="tempo di esecuzione medio (s)")
+plt.errorbar(steps, means, color=palette[0], yerr=stddev, fmt="o", capsize=4, label="deviazione standard")
 plt.xlabel("Passi di trasformazione", fontweight="bold")
 plt.ylabel("Tempo di esecuzione (s)", fontweight="bold")
-#plt.title("Tempi di esecuzione del benchmark 'pagerank' al variare dei passi di trasformazione", fontweight="bold")
-plt.title("Tempi di esecuzione del benchmark 'moon-calc' al variare dei passi di trasformazione", fontweight="bold")
+plt.title("Tempi di esecuzione del benchmark 'pagerank' al variare dei passi di trasformazione", fontweight="bold")
+#plt.title("Tempi di esecuzione del benchmark 'moon-calc' al variare dei passi di trasformazione", fontweight="bold")
 #plt.legend(loc="upper right")
 '''
 for i, mean in enumerate(means):
@@ -38,9 +44,9 @@ for i, mean in enumerate(means):
                  ha='left', va='bottom', fontsize=8, bbox=dict(facecolor='white', edgecolor='black', boxstyle='square'))
 '''
 
-#plt.ylim(min[0] - 0.2, max[3] + 0.2)
-plt.ylim(min[0] - 0.5, max[3] + 0.5)
+plt.ylim(min[0] - 0.2, max[3] + 0.2)
+#plt.ylim(min[0] - 0.5, max[3] + 0.5)
 
-#plt.savefig("pagerank.png", dpi=300)
-plt.savefig("moon-calc.png", dpi=300)
+plt.savefig("pagerank.png", dpi=300)
+#plt.savefig("moon-calc.png", dpi=300)
 plt.show()

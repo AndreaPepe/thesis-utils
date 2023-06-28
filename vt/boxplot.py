@@ -1,12 +1,16 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.style.use('ggplot')
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.serif'] = 'Ubuntu'
+plt.rcParams['font.monospace'] = 'Ubuntu Mono'
 
 boxplot_options = {
     'widths': 0.25,  # Larghezza dei box
     'patch_artist': True,  # Abilita l'uso di colori personalizzati
     'medianprops': {'color': 'black'},  # Colore della linea della mediana
-    'boxprops': {'color': 'black', 'facecolor': 'lightblue'},  # Colore del box
+    'boxprops': {'color': 'black'},  # Colore del box
     'whiskerprops': {'color': 'black'},  # Colore delle linee dei baffi
     'capprops': {'color': 'black'},  # Colore delle linee delle estremità dei baffi
     'flierprops': {'marker': 'o', 'markerfacecolor': 'black', 'markersize': 3},  # Opzioni per gli outliers
