@@ -44,7 +44,7 @@ for i, mean in enumerate(means):
                  ha='left', va='bottom', fontsize=8, bbox=dict(facecolor='white', edgecolor='black', boxstyle='square'))
 '''
 
-plt.ylim(min[0] - 0.2, max[3] + 0.2)
+plt.ylim(min[0] - 0.6, max[3] + 0.6)
 #plt.ylim(min[0] - 0.5, max[3] + 0.5)
 
 plt.savefig("pagerank.png", dpi=300)
